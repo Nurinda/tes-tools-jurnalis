@@ -1,18 +1,20 @@
-'use strict';
+import common from '../lib/common.js';
+import llm from '../lib/llm.js';
+import prompts from '../lib/prompts.js';
 
-const { respond, authorize, envInt } = require('../lib/common');
-const { callLLM } = require('../lib/llm');
-const { buildPrompt, parseJsonLoose } = require('../lib/prompts');
+const { respond, authorize, envInt } = common;
+const { callLLM } = llm;
+const { buildPrompt, parseJsonLoose } = prompts;
 
 // Satu panggilan = satu bagian dari satu tugas. Teks tidak disimpan di server.
-exports.handler = async (event) => {
-  if (event.httpMethod !== 'POST') return respond(405, { error: 'Metode tidak diizinkan.' });
-  const denied = await authorize(event);
+export default async (req) => {
+  if (req.method !== 'POST') return respond(405, { error: 'Metode tidak diizinkan.' });
+  const denied = await authorize(req);
   if (denied) return denied;
 
   let body;
   try {
-    body = JSON.parse(event.body || '{}');
+    body = JSON.parse((await req.text()) || '{}');
   } catch (_) {
     return respond(400, { error: 'Format permintaan tidak valid.' });
   }

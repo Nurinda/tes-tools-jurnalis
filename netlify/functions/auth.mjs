@@ -1,11 +1,11 @@
-'use strict';
+import common from '../lib/common.js';
 
-const { respond, authorize, getProvider, getModel } = require('../lib/common');
+const { respond, authorize, getProvider, getModel } = common;
 
 // Dipakai halaman login: memeriksa kata sandi dan melaporkan kesiapan mesin AI.
-exports.handler = async (event) => {
-  if (event.httpMethod !== 'POST') return respond(405, { error: 'Metode tidak diizinkan.' });
-  const denied = await authorize(event);
+export default async (req) => {
+  if (req.method !== 'POST') return respond(405, { error: 'Metode tidak diizinkan.' });
+  const denied = await authorize(req);
   if (denied) return denied;
 
   const provider = getProvider();

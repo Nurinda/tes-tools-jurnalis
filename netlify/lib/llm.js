@@ -1,6 +1,6 @@
 'use strict';
 
-const { envInt, getProvider, getModel } = require('./common');
+const { envInt, getProvider, getModel, anthropicUrl, openaiUrl } = require('./common');
 
 async function postJson(url, headers, body, timeoutMs) {
   const ctrl = new AbortController();
@@ -74,10 +74,11 @@ async function callAnthropic({ system, user, maxTokens, temperature }, timeoutMs
     messages: [{ role: 'user', content: user }],
   };
   const headers = { 'x-api-key': key, 'anthropic-version': '2023-06-01' };
-  let r = await postJson('https://api.anthropic.com/v1/messages', headers, body, timeoutMs);
+  const url = anthropicUrl('/messages');
+  let r = await postJson(url, headers, body, timeoutMs);
   if (!r.ok && mentionsTemperature(r)) {
     delete body.temperature; // beberapa model tidak menerima parameter ini
-    r = await postJson('https://api.anthropic.com/v1/messages', headers, body, timeoutMs);
+    r = await postJson(url, headers, body, timeoutMs);
   }
   if (!r.ok) throw upstreamError('anthropic', r);
   const blocks = Array.isArray(r.data.content) ? r.data.content : [];
@@ -104,7 +105,7 @@ async function callOpenAI({ system, user, maxTokens, temperature }, timeoutMs) {
     temperature,
   };
   const headers = { Authorization: `Bearer ${key}` };
-  const url = 'https://api.openai.com/v1/chat/completions';
+  const url = openaiUrl('/chat/completions');
   let r = await postJson(url, headers, body, timeoutMs);
   if (!r.ok && mentionsTemperature(r)) {
     delete body.temperature;

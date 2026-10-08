@@ -1,9 +1,8 @@
-'use strict';
+import common from '../lib/common.js';
 
-const { respond, authorize } = require('../lib/common');
+const { respond, authorize, openaiUrl } = common;
 
 const MAX_BYTES = 4.5 * 1024 * 1024; // batas request Netlify 6 MB, sisakan ruang
-const ENDPOINT = 'https://api.openai.com/v1/audio/transcriptions';
 
 async function requestTranscript(model, buf, prompt, key) {
   const form = new FormData();
@@ -17,7 +16,7 @@ async function requestTranscript(model, buf, prompt, key) {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 24000);
   try {
-    const res = await fetch(ENDPOINT, {
+    const res = await fetch(openaiUrl('/audio/transcriptions'), {
       method: 'POST',
       headers: { Authorization: `Bearer ${key}` },
       body: form,
@@ -37,9 +36,9 @@ async function requestTranscript(model, buf, prompt, key) {
 }
 
 // Menerima satu potongan audio WAV (biner) dan mengembalikan teksnya.
-exports.handler = async (event) => {
-  if (event.httpMethod !== 'POST') return respond(405, { error: 'Metode tidak diizinkan.' });
-  const denied = await authorize(event);
+export default async (req) => {
+  if (req.method !== 'POST') return respond(405, { error: 'Metode tidak diizinkan.' });
+  const denied = await authorize(req);
   if (denied) return denied;
 
   const key = process.env.OPENAI_API_KEY;
@@ -49,7 +48,7 @@ exports.handler = async (event) => {
     });
   }
 
-  const buf = Buffer.from(event.body || '', event.isBase64Encoded ? 'base64' : 'binary');
+  const buf = Buffer.from(await req.arrayBuffer());
   if (!buf.length) return respond(400, { error: 'Potongan audio kosong.' });
   if (buf.length > MAX_BYTES) {
     return respond(413, { error: 'Potongan audio terlalu besar. Muat ulang halaman dan coba lagi.' });
@@ -57,7 +56,7 @@ exports.handler = async (event) => {
 
   let prompt = '';
   try {
-    prompt = decodeURIComponent((event.headers || {})['x-prompt'] || '').slice(0, 600);
+    prompt = decodeURIComponent(req.headers.get('x-prompt') || '').slice(0, 600);
   } catch (_) {
     prompt = '';
   }

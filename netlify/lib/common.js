@@ -7,8 +7,22 @@ const JSON_HEADERS = {
   'Cache-Control': 'no-store',
 };
 
-function respond(statusCode, obj) {
-  return { statusCode, headers: JSON_HEADERS, body: JSON.stringify(obj) };
+function respond(status, obj) {
+  return new Response(JSON.stringify(obj), { status, headers: JSON_HEADERS });
+}
+
+// Alamat dasar API. Di Netlify, AI Gateway menyuntikkan *_BASE_URL secara otomatis.
+function anthropicUrl(path) {
+  const base = (process.env.ANTHROPIC_BASE_URL || 'https://api.anthropic.com')
+    .replace(/\/+$/, '')
+    .replace(/\/v1$/, '');
+  return base + '/v1' + path;
+}
+
+function openaiUrl(path) {
+  let base = (process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1').replace(/\/+$/, '');
+  if (!/\/v1$/.test(base)) base += '/v1';
+  return base + path;
 }
 
 function sha(s) {
@@ -38,15 +52,14 @@ function getModel(provider) {
  * Memeriksa kata sandi akses dari header x-app-password.
  * Mengembalikan objek respons error jika gagal, atau null jika lolos.
  */
-async function authorize(event) {
+async function authorize(req) {
   const expected = process.env.APP_PASSWORD;
   if (!expected) {
     return respond(500, {
       error: 'APP_PASSWORD belum diatur di Environment Variables Netlify.',
     });
   }
-  const headers = event.headers || {};
-  let given = headers['x-app-password'] || '';
+  let given = req.headers.get('x-app-password') || '';
   try {
     given = decodeURIComponent(given);
   } catch (_) {
@@ -60,4 +73,4 @@ async function authorize(event) {
   return null;
 }
 
-module.exports = { respond, authorize, envInt, getProvider, getModel };
+module.exports = { respond, authorize, envInt, getProvider, getModel, anthropicUrl, openaiUrl };
