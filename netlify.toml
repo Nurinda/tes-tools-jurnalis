@@ -3,6 +3,10 @@
 
 [build.environment]
   NODE_VERSION = "20"
+  # LLM_PROVIDER ("openai"/"anthropic") dan REVIEW_ID (nomor PR) bukan rahasia,
+  # tapi nilainya muncul di kode/README sehingga memicu secrets scanning.
+  # APP_PASSWORD & OPENAI_API_KEY tetap dipindai.
+  SECRETS_SCAN_OMIT_KEYS = "LLM_PROVIDER,REVIEW_ID"
 
 [functions]
   directory = "netlify/functions"
