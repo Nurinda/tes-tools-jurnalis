@@ -5,18 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
   <meta name="color-scheme" content="light">
-  <title>Meja Redaksi AI</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='5' fill='%2312343B'/%3E%3Crect x='6' y='19' width='20' height='6' fill='%23FFE14D'/%3E%3Cpath d='M8 17V7h3l5 6 5-6h3v10h-3v-5l-5 6-5-6v5z' fill='%23fff'/%3E%3C/svg%3E">
+  <title>kumparan | Meja Redaksi</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2300B2A9'/%3E%3Cpath d='M9 8v9a7 7 0 0 0 14 0V8' fill='none' stroke='%23fff' stroke-width='4' stroke-linecap='round'/%3E%3Cpath d='M11 8v6l5 4 5-4V8' fill='%23E8174E'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <noscript><p style="padding:24px">Aplikasi ini memerlukan JavaScript.</p></noscript>
+  <noscript><p style="padding:24px">Aktifkan JavaScript di browser untuk memakai aplikasi ini.</p></noscript>
+
+  <img class="corner-logo" src="img/logo-kumparan.webp" alt="kumparan" width="1024" height="256">
 
   <!-- Masuk -->
   <div id="login" class="login" hidden>
     <form id="login-form" class="login-card" autocomplete="off">
-      <h1>Meja Redaksi AI</h1>
-      <p>Alat bantu draf untuk jurnalis dan editor. Masukkan kata sandi yang diberikan admin redaksi.</p>
+      <h1 class="login-logo"><img src="img/logo-kumparan.webp" alt="kumparan" width="1024" height="256"></h1>
+      <p>Teman kerja jurnalis dan editor buat menyiapkan draf. Masukkan kata sandi dari admin redaksi.</p>
       <label for="login-pw">Kata sandi</label>
       <input id="login-pw" type="password" autocomplete="current-password" required>
       <p id="login-err" class="error" role="alert" hidden></p>
@@ -28,14 +30,13 @@
   <div id="app" class="app" hidden>
     <aside class="rail">
       <div class="brand">
-        <span class="brand-mark" aria-hidden="true"></span>
-        <span class="brand-name">Meja Redaksi AI</span>
+        <img class="brand-logo" src="img/logo-kumparan.webp" alt="kumparan" width="1024" height="256">
       </div>
       <nav id="nav" class="nav" aria-label="Fitur"></nav>
       <div class="rail-foot">
-        <label class="switch" for="audit-toggle" title="Satu panggilan AI tambahan untuk membandingkan draf dengan sumber">
+        <label class="switch" for="audit-toggle" title="Cek ulang draf terhadap bahan sumber setelah hasil keluar">
           <input id="audit-toggle" type="checkbox">
-          <span>Auditor AI</span>
+          <span>Cek ulang otomatis</span>
         </label>
         <p id="engine" class="engine"></p>
         <button id="logout" class="link-btn" type="button">Keluar</button>
@@ -43,6 +44,8 @@
     </aside>
     <main class="desk" id="desk"></main>
   </div>
+
+  <footer><div class="wrap">© <span id="yr"></span> kumparan (nrm). Semua hak dilindungi.</div></footer>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 

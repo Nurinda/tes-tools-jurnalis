@@ -370,7 +370,7 @@
       const st = styleStats(proseOnly(output));
       if (st.sentences >= 6) {
         const hints = [];
-        if (st.cv < 0.35) hints.push('Panjang kalimat cukup seragam. Selingi kalimat pendek dengan yang lebih panjang.');
+        if (st.cv < 0.35) hints.push('Panjang kalimatnya hampir sama semua. Coba selingi kalimat pendek dengan yang lebih panjang.');
         if (opts.styleStats && opts.styleStats.avg) {
           const diff = Math.abs(st.avg - opts.styleStats.avg) / opts.styleStats.avg;
           if (diff > 0.35) {
@@ -456,7 +456,7 @@
         q.status === 'exact'
           ? 'Kutipan cocok dengan sumber'
           : q.status === 'similar'
-          ? 'Kutipan mirip tetapi tidak persis. Cek ke sumber'
+          ? 'Kutipannya mirip tapi tidak persis. Cek lagi ke sumber'
           : 'Kutipan TIDAK ditemukan di sumber';
       specs.push({ re: looseRe(q.text), cls: cls, title: title });
     });
@@ -483,7 +483,7 @@
     });
     report.cliches.forEach(function (c) {
       c.found.forEach(function (f) {
-        specs.push({ re: new RegExp(escapeRe(f), 'gi'), cls: 'm-cliche', title: 'Frasa klise atau pola khas tulisan mesin' });
+        specs.push({ re: new RegExp(escapeRe(f), 'gi'), cls: 'm-cliche', title: 'Frasa klise atau terasa kaku' });
       });
     });
     (auditItems || []).forEach(function (a) {

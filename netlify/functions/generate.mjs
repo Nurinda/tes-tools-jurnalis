@@ -1,18 +1,20 @@
-'use strict';
+import common from '../lib/common.js';
+import llm from '../lib/llm.js';
+import prompts from '../lib/prompts.js';
 
-const { respond, authorize, envInt } = require('../lib/common');
-const { callLLM } = require('../lib/llm');
-const { buildPrompt, parseJsonLoose } = require('../lib/prompts');
+const { respond, authorize, envInt } = common;
+const { callLLM } = llm;
+const { buildPrompt, parseJsonLoose } = prompts;
 
 // Satu panggilan = satu bagian dari satu tugas. Teks tidak disimpan di server.
-exports.handler = async (event) => {
-  if (event.httpMethod !== 'POST') return respond(405, { error: 'Metode tidak diizinkan.' });
-  const denied = await authorize(event);
+export default async (req) => {
+  if (req.method !== 'POST') return respond(405, { error: 'Metode tidak diizinkan.' });
+  const denied = await authorize(req);
   if (denied) return denied;
 
   let body;
   try {
-    body = JSON.parse(event.body || '{}');
+    body = JSON.parse((await req.text()) || '{}');
   } catch (_) {
     return respond(400, { error: 'Format permintaan tidak valid.' });
   }
@@ -22,7 +24,7 @@ exports.handler = async (event) => {
   const maxChars = envInt('MAX_INPUT_CHARS', 120000);
 
   if (typeof payload.text !== 'string' || !payload.text.trim()) {
-    return respond(400, { error: 'Bahan teks kosong.' });
+    return respond(400, { error: 'Bahannya masih kosong.' });
   }
   if (payload.text.length > maxChars) {
     return respond(413, {
@@ -58,7 +60,7 @@ exports.handler = async (event) => {
     // Semua kegagalan dari penyedia AI dikirim sebagai 502/504 agar tidak
     // tertukar dengan 401 (kata sandi aplikasi salah).
     return respond(e.status === 504 ? 504 : e.status === 500 ? 500 : 502, {
-      error: e.message || 'Terjadi kesalahan saat memanggil AI.',
+      error: e.message || 'Ada kendala saat memproses permintaan. Coba lagi.',
     });
   }
 };

@@ -1,6 +1,6 @@
 'use strict';
 
-const { envInt, getProvider, getModel } = require('./common');
+const { envInt, getProvider, getModel, baseUrl } = require('./common');
 
 async function postJson(url, headers, body, timeoutMs) {
   const ctrl = new AbortController();
@@ -22,11 +22,11 @@ async function postJson(url, headers, body, timeoutMs) {
     return { ok: res.ok, status: res.status, data };
   } catch (e) {
     if (e && e.name === 'AbortError') {
-      const err = new Error('Waktu habis saat menunggu AI. Coba teks yang lebih pendek atau ulangi.');
+      const err = new Error('Kelamaan menunggu jawaban. Coba ulangi, atau pakai teks yang lebih pendek.');
       err.status = 504;
       throw err;
     }
-    const err = new Error('Tidak bisa menghubungi penyedia AI. Coba lagi sebentar lagi.');
+    const err = new Error('Layanan sedang tidak bisa dihubungi. Coba lagi sebentar lagi.');
     err.status = 502;
     throw err;
   } finally {
@@ -44,9 +44,9 @@ function upstreamError(provider, r) {
   } else if (r.status === 404 || /model/i.test(raw) && /not.?found|does not exist|invalid/i.test(raw)) {
     msg = `Nama model tidak dikenali. Periksa ${provider === 'anthropic' ? 'ANTHROPIC_MODEL' : 'OPENAI_MODEL'} di Netlify.`;
   } else if (r.status === 429) {
-    msg = 'Batas pemakaian atau kuota API tercapai. Tunggu sebentar atau periksa saldo API.';
+    msg = 'Kuota pemakaian sedang habis. Tunggu sebentar atau hubungi admin.';
   } else if (r.status === 529 || r.status >= 500) {
-    msg = 'Layanan AI sedang sibuk. Coba lagi sebentar lagi.';
+    msg = 'Layanan sedang sibuk. Coba lagi sebentar lagi.';
   } else {
     msg = `Permintaan ke AI ditolak (${r.status}). ${typeof detail === 'string' ? detail.slice(0, 200) : ''}`.trim();
   }
@@ -74,10 +74,11 @@ async function callAnthropic({ system, user, maxTokens, temperature }, timeoutMs
     messages: [{ role: 'user', content: user }],
   };
   const headers = { 'x-api-key': key, 'anthropic-version': '2023-06-01' };
-  let r = await postJson('https://api.anthropic.com/v1/messages', headers, body, timeoutMs);
+  const url = baseUrl('ANTHROPIC_BASE_URL', 'https://api.anthropic.com') + '/v1/messages';
+  let r = await postJson(url, headers, body, timeoutMs);
   if (!r.ok && mentionsTemperature(r)) {
     delete body.temperature; // beberapa model tidak menerima parameter ini
-    r = await postJson('https://api.anthropic.com/v1/messages', headers, body, timeoutMs);
+    r = await postJson(url, headers, body, timeoutMs);
   }
   if (!r.ok) throw upstreamError('anthropic', r);
   const blocks = Array.isArray(r.data.content) ? r.data.content : [];
@@ -104,7 +105,7 @@ async function callOpenAI({ system, user, maxTokens, temperature }, timeoutMs) {
     temperature,
   };
   const headers = { Authorization: `Bearer ${key}` };
-  const url = 'https://api.openai.com/v1/chat/completions';
+  const url = openaiBase() + '/chat/completions';
   let r = await postJson(url, headers, body, timeoutMs);
   if (!r.ok && mentionsTemperature(r)) {
     delete body.temperature;
@@ -118,6 +119,11 @@ async function callOpenAI({ system, user, maxTokens, temperature }, timeoutMs) {
   };
 }
 
+function openaiBase() {
+  const b = baseUrl('OPENAI_BASE_URL', 'https://api.openai.com/v1');
+  return /\/v1$/.test(b) ? b : b + '/v1';
+}
+
 async function callLLM(prompt) {
   const timeoutMs = envInt('LLM_TIMEOUT_MS', 25000);
   const provider = getProvider();
@@ -128,4 +134,4 @@ async function callLLM(prompt) {
   return Object.assign(out, { provider, model: getModel(provider) });
 }
 
-module.exports = { callLLM };
+module.exports = { callLLM, openaiBase };
