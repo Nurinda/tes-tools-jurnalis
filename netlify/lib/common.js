@@ -7,8 +7,14 @@ const JSON_HEADERS = {
   'Cache-Control': 'no-store',
 };
 
-function respond(statusCode, obj) {
-  return { statusCode, headers: JSON_HEADERS, body: JSON.stringify(obj) };
+function respond(status, obj) {
+  return new Response(JSON.stringify(obj), { status, headers: JSON_HEADERS });
+}
+
+// Alamat dasar API penyedia; memakai variabel dari AI Gateway Netlify bila ada.
+function baseUrl(envName, fallback) {
+  const v = (process.env[envName] || '').trim().replace(/\/+$/, '');
+  return v || fallback;
 }
 
 function sha(s) {
@@ -38,15 +44,14 @@ function getModel(provider) {
  * Memeriksa kata sandi akses dari header x-app-password.
  * Mengembalikan objek respons error jika gagal, atau null jika lolos.
  */
-async function authorize(event) {
+async function authorize(req) {
   const expected = process.env.APP_PASSWORD;
   if (!expected) {
     return respond(500, {
       error: 'APP_PASSWORD belum diatur di Environment Variables Netlify.',
     });
   }
-  const headers = event.headers || {};
-  let given = headers['x-app-password'] || '';
+  let given = req.headers.get('x-app-password') || '';
   try {
     given = decodeURIComponent(given);
   } catch (_) {
@@ -60,4 +65,4 @@ async function authorize(event) {
   return null;
 }
 
-module.exports = { respond, authorize, envInt, getProvider, getModel };
+module.exports = { respond, authorize, envInt, getProvider, getModel, baseUrl };

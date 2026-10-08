@@ -1,4 +1,4 @@
-/* Meja Redaksi AI - antarmuka dan alur kerja */
+/* Meja Redaksi kumparan - antarmuka dan alur kerja */
 (function () {
   'use strict';
 
@@ -42,7 +42,7 @@
         localStorage.setItem(k, JSON.stringify(v));
         return true;
       } catch (_) {
-        toast('Penyimpanan browser penuh atau dinonaktifkan.');
+        toast('Gagal menyimpan. Penyimpanan browser mungkin penuh atau sedang dimatikan.');
         return false;
       }
     },
@@ -70,7 +70,7 @@
       }
       ta.remove();
     }
-    toast('Tersalin.');
+    toast('Sudah disalin.');
   }
 
   function download(filename, text, type) {
@@ -97,7 +97,7 @@
       try {
         res = await fetch('/api/' + path, init);
       } catch (_) {
-        throw new Error('Tidak bisa terhubung ke server. Periksa koneksi internet.');
+        throw new Error('Gagal tersambung ke server. Coba cek koneksi internetmu.');
       }
       const text = await res.text();
       let data = null;
@@ -107,16 +107,16 @@
         /* bukan JSON */
       }
       if (res.status === 401 && path !== 'auth') {
-        showLogin('Sesi berakhir. Masukkan kata sandi lagi.');
-        throw new Error('Kata sandi salah atau sesi berakhir.');
+        showLogin('Sesimu sudah habis. Silakan masuk lagi.');
+        throw new Error('Kata sandi salah atau sesimu sudah habis.');
       }
       if (!res.ok) {
         let msg = data && data.error;
         if (!msg) {
           msg =
             res.status >= 500
-              ? 'Server terlalu lama merespons atau melewati batas waktu fungsi Netlify. Coba dengan teks yang lebih pendek.'
-              : 'Permintaan gagal (' + res.status + ').';
+              ? 'Server kelamaan merespons. Coba lagi dengan teks yang lebih pendek.'
+              : 'Ada yang tidak beres (kode ' + res.status + '). Coba lagi.';
         }
         const err = new Error(msg);
         err.status = res.status;
@@ -173,7 +173,7 @@
       const p = Profiles.get(sel.value);
       info.textContent = p
         ? p.samples.length + ' contoh tulisan' + (p.summary ? ', ringkasan gaya terisi.' : '.')
-        : 'Tanpa profil, AI memakai gaya berita yang netral. Buat profil di menu Profil gaya.';
+        : 'Kalau tidak pilih profil, hasilnya ditulis dengan gaya berita yang netral. Profil bisa dibuat di menu Profil gaya.';
     }
     function fill() {
       const list = Profiles.all();
@@ -319,7 +319,7 @@
     type: 'textarea',
     label: 'Konteks dari jurnalis (opsional)',
     rows: 3,
-    hint: 'Nama dan jabatan narasumber, lokasi, tanggal, topik. Isi bagian ini dianggap fakta yang kamu jamin benar.',
+    hint: 'Misalnya nama dan jabatan narasumber, lokasi, tanggal, atau topik. Pastikan isinya benar, karena bagian ini dipakai apa adanya.',
     placeholder: 'Contoh: Wawancara dengan Kepala Dinas Pendidikan Kota X, Selasa 6 Oktober, di Balai Kota.',
   };
 
@@ -328,7 +328,7 @@
       id: 'check',
       label: 'Cek naskah',
       title: 'Cek naskah sebelum tayang',
-      desc: 'Menandai potensi pelanggaran etik, masalah bahasa, ketidakkonsistenan, dan klaim yang harus diverifikasi. Alat ini menandai, bukan memverifikasi fakta.',
+      desc: 'Bantu cari potensi pelanggaran etik, salah bahasa, bagian yang tidak konsisten, dan klaim yang masih perlu dicek. Pengecekan faktanya tetap tugasmu.',
       task: 'check',
       cta: 'Periksa naskah',
       fields: [{ id: 'text', type: 'textarea', label: 'Naskah', rows: 16, required: true, placeholder: 'Tempel naskah berita di sini…' }],
@@ -341,7 +341,7 @@
       id: 'headline',
       label: 'Judul dan SEO',
       title: 'Judul dan SEO',
-      desc: 'Sepuluh opsi judul dengan gaya berbeda, lengkap dengan meta description, tag, dan slug. Setiap judul harus bisa dibuktikan oleh isi naskah.',
+      desc: 'Dapatkan sepuluh pilihan judul dengan gaya berbeda, plus meta description, tag, dan slug. Semua judul tetap berpegang pada isi naskah.',
       task: 'headline',
       cta: 'Buat judul dan SEO',
       fields: [{ id: 'text', type: 'textarea', label: 'Naskah', rows: 14, required: true, placeholder: 'Tempel naskah berita di sini…' }],
@@ -354,7 +354,7 @@
       id: 'repurpose',
       label: 'Sebar konten',
       title: 'Sebar konten',
-      desc: 'Ubah satu berita jadi konten media sosial dan newsletter tanpa menambah klaim baru.',
+      desc: 'Olah satu berita jadi konten media sosial dan newsletter, tanpa menambah klaim yang tidak ada di berita aslinya.',
       task: 'repurpose',
       cta: 'Buat konten',
       fields: [
@@ -370,11 +370,11 @@
       id: 'transcript',
       label: 'Transkrip ke berita',
       title: 'Transkrip ke bahan berita',
-      desc: 'Dari transkrip wawancara atau konferensi pers: ringkasan, kutipan terbaik beserta konteksnya, pilihan angle, dan kerangka berita.',
+      desc: 'Tempel transkrip wawancara atau konferensi pers, lalu dapatkan ringkasan, kutipan paling kuat beserta konteksnya, pilihan angle, dan kerangka berita.',
       task: 'transcript',
       cta: 'Buat bahan berita',
       fields: [
-        { id: 'text', type: 'textarea', label: 'Transkrip', rows: 14, required: true, placeholder: 'Tempel transkrip wawancara. Label pembicara dan penanda waktu seperti [03:25] akan dibaca bila ada.' },
+        { id: 'text', type: 'textarea', label: 'Transkrip', rows: 14, required: true, placeholder: 'Tempel transkrip wawancara di sini. Kalau ada nama pembicara atau penanda waktu seperti [03:25], biarkan saja.' },
         NOTES_FIELD,
         { id: 'withDraft', type: 'check', label: 'Sertakan draf berita lengkap' },
       ],
@@ -387,7 +387,7 @@
       id: 'release',
       label: 'Rilis ke berita',
       title: 'Siaran pers ke draf berita',
-      desc: 'Mengubah rilis menjadi draf berita yang netral, lengkap dengan klaim sepihak yang perlu dikonfirmasi dan pertanyaan untuk narasumber pembanding.',
+      desc: 'Ubah rilis jadi draf berita yang netral. Klaim sepihak yang perlu dikonfirmasi ikut ditandai, lengkap dengan usulan pertanyaan untuk narasumber pembanding.',
       task: 'release',
       cta: 'Buat draf dari rilis',
       fields: [
@@ -403,12 +403,12 @@
       id: 'voice',
       label: 'Suara ke berita',
       title: 'Suara ke bahan berita',
-      desc: 'Rekam atau unggah audio, periksa transkripnya, lalu olah menjadi bahan berita. Audio diproses per potongan dan tidak disimpan di server.',
+      desc: 'Rekam atau unggah audio, cek transkripnya, lalu olah jadi bahan berita. Audionya tidak disimpan di server.',
       task: 'transcript',
       cta: 'Buat bahan berita',
       fromAudio: true,
       fields: [
-        { id: 'text', type: 'textarea', label: 'Transkrip (periksa dan koreksi sebelum diolah)', rows: 14, required: true, placeholder: 'Hasil transkripsi muncul di sini. Nama, angka, dan istilah sering salah dengar, jadi koreksi dulu.' },
+        { id: 'text', type: 'textarea', label: 'Transkrip (periksa dan koreksi sebelum diolah)', rows: 14, required: true, placeholder: 'Transkrip muncul di sini. Nama, angka, dan istilah sering salah tangkap, jadi cek dulu ya.' },
         NOTES_FIELD,
         { id: 'withDraft', type: 'check', label: 'Sertakan draf berita lengkap' },
       ],
@@ -500,11 +500,11 @@
 
     inputs.append(
       el('div', { class: 'actions' }, runBtn, status),
-      el('p', { class: 'fine', text: 'Teks dikirim ke penyedia AI untuk diproses dan tidak disimpan di server aplikasi. Jangan memasukkan materi embargo atau data sensitif narasumber.' })
+      el('p', { class: 'fine', text: 'Teks yang kamu tempel dikirim ke layanan pihak ketiga untuk diolah dan tidak kami simpan. Hindari memasukkan materi embargo atau data pribadi narasumber.' })
     );
 
     resultEl.append(
-      el('div', { class: 'empty' }, el('p', { class: 'empty-title', text: 'Hasil tampil di sini' }), el('p', { text: 'Setiap kutipan, angka, dan nama dalam hasil akan dicocokkan dengan bahan sumbermu, lalu yang janggal ditandai.' }))
+      el('div', { class: 'empty' }, el('p', { class: 'empty-title', text: 'Hasilnya nanti muncul di sini' }), el('p', { text: 'Kutipan, angka, dan nama di hasil langsung dicocokkan dengan bahanmu. Yang tidak cocok akan ditandai.' }))
     );
     out.append(resultEl);
     section.append(inputs, out);
@@ -519,13 +519,13 @@
     if (ctx.busy) return;
     const v = onlyFailed && ctx.last ? ctx.last.v : ctx.values();
     if (!v.text.trim()) {
-      toast('Bahan masih kosong.');
+      toast('Tempel bahannya dulu.');
       ctx.fields.text.ta.focus();
       return;
     }
     const order = onlyFailed && ctx.last ? ctx.last.order : tab.parts(v);
     if (!order.length) {
-      toast('Pilih minimal satu platform.');
+      toast('Pilih setidaknya satu platform.');
       return;
     }
 
@@ -533,10 +533,10 @@
     const todo = order.filter((p) => !outputs[p] || outputs[p].error);
 
     ctx.setBusy(true);
-    ctx.status('Menulis… 0/' + todo.length + ' bagian', 'busy');
+    ctx.status('Sedang menulis… 0 dari ' + todo.length + ' bagian', 'busy');
     if (!onlyFailed) {
       ctx.resultEl.replaceChildren(
-        el('div', { class: 'empty' }, el('p', { class: 'empty-title', text: 'Sedang bekerja…' }), el('p', { text: 'Bagian-bagian hasil ditulis paralel agar cepat.' }))
+        el('div', { class: 'empty' }, el('p', { class: 'empty-title', text: 'Sebentar, sedang disiapkan…' }), el('p', { text: 'Biasanya cuma butuh beberapa detik.' }))
       );
     }
 
@@ -552,13 +552,13 @@
               part,
               payload: { text: v.text, notes: v.notes, style: v.style, fromAudio: !!tab.fromAudio },
             });
-            if (!r.text) throw new Error('AI mengembalikan hasil kosong.');
+            if (!r.text) throw new Error('Hasilnya kosong. Coba ulangi.');
             outputs[part] = { text: r.text, truncated: !!r.truncated };
           } catch (e) {
             outputs[part] = { error: e.message };
           }
           done++;
-          ctx.status('Menulis… ' + done + '/' + todo.length + ' bagian', 'busy');
+          ctx.status('Sedang menulis… ' + done + ' dari ' + todo.length + ' bagian', 'busy');
         }
       };
       await Promise.all(Array.from({ length: Math.min(3, todo.length) }, worker));
@@ -568,8 +568,8 @@
       ctx.last = L;
 
       if (!L.raw) {
-        const firstErr = order.map((p) => outputs[p] && outputs[p].error).find(Boolean) || 'Tidak ada hasil.';
-        ctx.resultEl.replaceChildren(el('div', { class: 'error-box' }, el('strong', { text: 'Gagal membuat hasil. ' }), firstErr));
+        const firstErr = order.map((p) => outputs[p] && outputs[p].error).find(Boolean) || 'Belum ada hasil.';
+        ctx.resultEl.replaceChildren(el('div', { class: 'error-box' }, el('strong', { text: 'Hasilnya belum berhasil dibuat. ' }), firstErr));
         ctx.status('');
         return;
       }
@@ -578,10 +578,10 @@
       renderSheet(tab, ctx);
 
       if (state.audit && tab.audit) {
-        ctx.status('Auditor AI membandingkan draf dengan sumber…', 'busy');
+        ctx.status('Mengecek ulang draf dengan bahan sumber…', 'busy');
         await runAudit(tab, ctx);
       }
-      ctx.status('Selesai.', 'ok');
+      ctx.status('Beres.', 'ok');
     } catch (e) {
       ctx.status('');
       toast(e.message);
@@ -623,7 +623,7 @@
       if (r.data && Array.isArray(r.data.temuan)) {
         L.audit = { status: 'ok', items: r.data.temuan.filter((t) => t && t.klaim), note: r.data.catatan || '' };
       } else {
-        L.audit = { status: 'error', error: 'Auditor mengembalikan format yang tidak terbaca. Coba jalankan lagi.' };
+        L.audit = { status: 'error', error: 'Hasil cek ulang tidak bisa dibaca. Coba jalankan lagi.' };
       }
     } catch (e) {
       L.audit = { status: 'error', error: e.message };
@@ -649,21 +649,21 @@
         if (s.quotesSimilar) chips.push(chip(s.quotesSimilar + ' mirip', 'warn'));
         if (s.quotesMissing) chips.push(chip(s.quotesMissing + ' tidak ditemukan', 'bad'));
       } else {
-        chips.push(chip('Tidak ada kutipan langsung', 'muted'));
+        chips.push(chip('Tanpa kutipan langsung', 'muted'));
       }
     }
     if (m.numbers) chips.push(s.numbers ? chip(s.numbers + ' angka tak ada di sumber', 'warn') : chip('Semua angka ada di sumber', 'ok'));
     if (m.names) chips.push(s.names ? chip(s.names + ' nama tak ada di sumber', 'warn') : chip('Semua nama ada di sumber', 'ok'));
     if (m.leak && L.v.style && (L.v.style.samples || []).length) {
-      chips.push(s.leaks ? chip(s.leaks + ' jejak dari contoh', 'bad') : chip('Tidak ada jejak dari contoh', 'ok'));
+      chips.push(s.leaks ? chip(s.leaks + ' bagian terbawa dari contoh', 'bad') : chip('Tidak ada yang terbawa dari contoh', 'ok'));
     }
     if (m.cliche) chips.push(s.cliches ? chip(s.cliches + ' frasa klise', 'cliche') : chip('Tidak ada frasa klise', 'ok'));
     if (tab.audit) {
       const a = L.audit;
-      if (!a) chips.push(chip('Auditor AI belum dijalankan', 'muted'));
-      else if (a.status === 'running') chips.push(chip('Auditor AI memeriksa…', 'muted'));
-      else if (a.status === 'ok') chips.push(a.items.length ? chip('Auditor: ' + a.items.length + ' temuan', 'bad') : chip('Auditor: tidak ada temuan', 'ok'));
-      else chips.push(chip('Auditor gagal', 'muted'));
+      if (!a) chips.push(chip('Belum dicek ulang', 'muted'));
+      else if (a.status === 'running') chips.push(chip('Sedang dicek ulang…', 'muted'));
+      else if (a.status === 'ok') chips.push(a.items.length ? chip('Cek ulang: ' + a.items.length + ' temuan', 'bad') : chip('Cek ulang: aman', 'ok'));
+      else chips.push(chip('Cek ulang gagal', 'muted'));
     }
     return el('div', { class: 'verdict' }, ...chips);
   }
@@ -694,28 +694,28 @@
               return el('li', {}, chip(label, kind), el('span', { class: 'row-text', text: '“' + q.text + '”' }), extra.length ? el('span', { class: 'row-meta', text: extra.join(', ') }) : null);
             })
           )
-        : el('p', { class: 'muted', text: 'Tidak ada kutipan langsung pada hasil.' });
-      blocks.push(reportBlock('Kutipan langsung', tab.id === 'check' ? 'Fragmen yang dikutip dari naskah dicocokkan ke naskahmu. Yang tidak ditemukan berarti AI salah mengutip.' : 'Dicocokkan otomatis dengan sumber oleh kode, bukan oleh AI. “Mirip” berarti kata-katanya berubah sedikit.', body, r.summary.quotesMissing || r.summary.quotesSimilar));
+        : el('p', { class: 'muted', text: 'Hasil ini tidak memuat kutipan langsung.' });
+      blocks.push(reportBlock('Kutipan langsung', tab.id === 'check' ? 'Bagian yang dikutip dicocokkan lagi ke naskahmu. Kalau tidak ketemu, berarti kutipannya keliru.' : 'Dicocokkan otomatis kata per kata dengan sumber. “Mirip” artinya ada sedikit kata yang berubah.', body, r.summary.quotesMissing || r.summary.quotesSimilar));
     }
 
     if (m.numbers || m.names) {
       const rows = [];
       r.numbers.forEach((n) => rows.push(el('li', {}, chip('angka', n.leak ? 'bad' : 'warn'), el('span', { class: 'row-text', text: n.raws.join(', ') }), el('span', { class: 'row-meta', text: n.leak ? 'ada di contoh tulisan, bukan di sumber' : 'tidak ada di sumber' }))));
       r.names.forEach((n) => rows.push(el('li', {}, chip('nama', n.leak ? 'bad' : 'warn'), el('span', { class: 'row-text', text: n.word }), el('span', { class: 'row-meta', text: (n.leak ? 'ada di contoh tulisan, bukan di sumber' : 'tidak ada di sumber') + (n.count > 1 ? ', muncul ' + n.count + 'x' : '') }))));
-      const body = rows.length ? el('ul', { class: 'rows' }, ...rows) : el('p', { class: 'muted', text: 'Semua angka dan nama yang terdeteksi ada di sumber.' });
-      blocks.push(reportBlock('Angka dan nama yang tidak ada di sumber', 'Bisa jadi sah (misalnya angka ditulis dengan kata, atau nama tempat umum), tetapi periksa satu per satu. Angka yang ditulis dengan huruf tidak ikut dicek.', body, rows.length));
+      const body = rows.length ? el('ul', { class: 'rows' }, ...rows) : el('p', { class: 'muted', text: 'Semua angka dan nama yang ditemukan ada di sumber.' });
+      blocks.push(reportBlock('Angka dan nama yang tidak ada di sumber', 'Belum tentu salah, misalnya nama tempat yang umum. Tetap cek satu per satu, ya. Angka yang ditulis dengan huruf tidak ikut dicek.', body, rows.length));
     }
 
     if (m.leak && L.v.style && (L.v.style.samples || []).length) {
       const body = r.leaks.length
         ? el('ul', { class: 'rows' }, ...r.leaks.map((l) => el('li', {}, chip('mirip contoh', 'bad'), el('span', { class: 'row-text', text: '“' + l.phrase + '”' }))))
-        : el('p', { class: 'muted', text: 'Tidak ada rangkaian tujuh kata atau lebih yang sama dengan contoh tulisan.' });
-      blocks.push(reportBlock('Kemiripan dengan contoh tulisan', 'Contoh hanya boleh memengaruhi gaya. Rangkaian kata yang sama persis dengan contoh perlu ditulis ulang.', body, r.leaks.length));
+        : el('p', { class: 'muted', text: 'Tidak ada kalimat yang menjiplak contoh tulisan.' });
+      blocks.push(reportBlock('Kemiripan dengan contoh tulisan', 'Contoh tulisan cuma dipakai sebagai acuan gaya. Kalau ada kalimat yang sama persis, sebaiknya ditulis ulang.', body, r.leaks.length));
     }
 
     if (m.cliche) {
       const rows = r.cliches.map((c) => el('li', {}, chip('klise', 'cliche'), el('span', { class: 'row-text', text: c.label }), el('span', { class: 'row-meta', text: c.count + 'x' })));
-      const body = el('div', {}, rows.length ? el('ul', { class: 'rows' }, ...rows) : el('p', { class: 'muted', text: 'Tidak ada frasa klise dari daftar.' }));
+      const body = el('div', {}, rows.length ? el('ul', { class: 'rows' }, ...rows) : el('p', { class: 'muted', text: 'Tidak ada frasa klise.' }));
       if (r.rhythm) {
         const st = r.rhythm.stats;
         body.append(
@@ -723,20 +723,20 @@
         );
         r.rhythm.hints.forEach((h) => body.append(el('p', { class: 'warn-text', text: h })));
       }
-      blocks.push(reportBlock('Pemeriksa klise dan ritme', 'Menandai frasa yang kerap terdengar seperti tulisan mesin atau klise. Ini bukan hasil detektor AI; gunanya membantu editor menyunting.', body, rows.length || (r.rhythm && r.rhythm.hints.length)));
+      blocks.push(reportBlock('Klise dan ritme kalimat', 'Frasa yang terasa klise atau kaku ditandai supaya gampang disunting. Ini bukan detektor AI.', body, rows.length || (r.rhythm && r.rhythm.hints.length)));
     }
 
     if (tab.audit) {
       const a = L.audit;
       let body;
       if (!a) {
-        body = el('div', {}, el('p', { class: 'muted', text: 'Auditor AI membandingkan draf dengan sumber dan mendaftar klaim yang tidak didukung.' }), el('button', { class: 'btn', type: 'button', text: 'Jalankan auditor AI', onclick: () => runAudit(tab, ctx) }));
+        body = el('div', {}, el('p', { class: 'muted', text: 'Draf dibandingkan lagi dengan bahan sumber untuk mencari klaim yang tidak ada dasarnya.' }), el('button', { class: 'btn', type: 'button', text: 'Cek ulang sekarang', onclick: () => runAudit(tab, ctx) }));
       } else if (a.status === 'running') {
-        body = el('p', { class: 'status busy', text: 'Auditor sedang memeriksa…' });
+        body = el('p', { class: 'status busy', text: 'Sedang dicek ulang…' });
       } else if (a.status === 'error') {
         body = el('div', {}, el('p', { class: 'warn-text', text: a.error }), el('button', { class: 'btn', type: 'button', text: 'Coba lagi', onclick: () => runAudit(tab, ctx) }));
       } else if (!a.items.length) {
-        body = el('p', { class: 'muted', text: 'Auditor tidak menemukan pernyataan yang tidak didukung sumber. Ini bukan jaminan; tetap periksa kutipan dan angka.' });
+        body = el('p', { class: 'muted', text: 'Tidak ada klaim yang melenceng dari sumber. Meski begitu, kutipan dan angka tetap perlu kamu cek sendiri.' });
       } else {
         body = el(
           'ul',
@@ -744,9 +744,9 @@
           ...a.items.map((t) => el('li', {}, chip(t.tingkat || 'periksa', t.tingkat === 'tinggi' ? 'bad' : 'warn'), el('span', { class: 'row-text', text: t.klaim }), el('span', { class: 'row-meta', text: t.alasan || '' })))
         );
       }
-      blocks.push(reportBlock('Auditor AI (panggilan terpisah)', 'Satu panggilan AI lain yang hanya bertugas mencari klaim yang tidak didukung sumber. Bisa keliru, jadi anggap sebagai petunjuk.', body, a && a.status === 'ok' && a.items.length));
+      blocks.push(reportBlock('Cek ulang terhadap sumber', 'Pemeriksaan kedua yang khusus mencari klaim tanpa dasar di bahan sumber. Bisa saja meleset, jadi anggap sebagai petunjuk.', body, a && a.status === 'ok' && a.items.length));
     }
-    return el('div', { class: 'report' }, el('h3', { text: 'Laporan verifikasi' }), ...blocks);
+    return el('div', { class: 'report' }, el('h3', { text: 'Catatan pengecekan' }), ...blocks);
   }
 
   function renderSheet(tab, ctx) {
@@ -777,7 +777,7 @@
       el(
         'div',
         { class: 'sheet-head' },
-        el('div', {}, el('h2', { text: 'Hasil' }), el('p', { class: 'stamp', text: 'Draf bantuan AI. Wajib diperiksa dan disunting editor sebelum tayang.' })),
+        el('div', {}, el('h2', { text: 'Hasil' }), el('p', { class: 'stamp', text: 'Ini masih draf. Wajib dibaca dan disunting editor sebelum tayang.' })),
         el('div', { class: 'sheet-actions' }, copyBtn, editBtn)
       )
     );
@@ -790,7 +790,7 @@
         el(
           'div',
           { class: 'error-box' },
-          el('strong', { text: failed.length + ' bagian gagal dibuat. ' }),
+          el('strong', { text: failed.length + ' bagian belum berhasil dibuat. ' }),
           failed.map((p) => L.outputs[p].error).filter((x, i, a) => a.indexOf(x) === i).join(' '),
           ' ',
           el('button', { class: 'btn small', type: 'button', text: 'Ulangi bagian yang gagal', onclick: () => runTool(tab, ctx, true) })
@@ -798,7 +798,7 @@
       );
     }
     const trunc = L.order.filter((p) => L.outputs[p] && L.outputs[p].truncated);
-    if (trunc.length) box.append(el('div', { class: 'error-box soft' }, 'Sebagian hasil terpotong karena batas panjang keluaran. Bagi bahan menjadi lebih pendek atau lengkapi secara manual.'));
+    if (trunc.length) box.append(el('div', { class: 'error-box soft' }, 'Sebagian hasil terpotong karena terlalu panjang. Coba pecah bahannya jadi lebih pendek, atau lengkapi sendiri.'));
 
     if (L.editing) {
       ctx.editor = el('textarea', { class: 'editor', rows: 22, value: L.raw, spellcheck: true });
@@ -822,9 +822,9 @@
       el('mark', { class: 'm-warn', text: 'periksa' }), ' ',
       el('mark', { class: 'm-bad', text: 'bermasalah' }), ' ',
       el('mark', { class: 'm-cliche', text: 'klise' }), ' ',
-      el('mark', { class: 'm-audit', text: 'temuan auditor' }), ' ',
+      el('mark', { class: 'm-audit', text: 'temuan cek ulang' }), ' ',
       el('mark', { class: 'm-todo', text: 'perlu diisi' }),
-      ' Arahkan kursor ke tanda untuk melihat alasannya.'
+      ' Arahkan kursor ke tanda untuk lihat alasannya.'
     );
   }
 
@@ -855,8 +855,8 @@
     const goBtn = el('button', { class: 'btn primary', type: 'button', text: 'Transkripsikan audio' });
     const cancelBtn = el('button', { class: 'btn', type: 'button', text: 'Batalkan', hidden: true });
 
-    const recPane = el('div', { class: 'pane' }, recBtn, timerEl, el('p', { class: 'hint', text: 'Di ponsel, jangan kunci layar atau pindah aplikasi saat merekam. Untuk rekaman penting, pakai aplikasi perekam bawaan lalu unggah filenya.' }));
-    const upPane = el('div', { class: 'pane', hidden: true }, el('label', { for: 'voice-file', text: 'Pilih file audio' }), fileInp, el('p', { class: 'hint', text: 'Format yang aman: m4a, mp3, wav. File .opus/.ogg (misalnya voice note WhatsApp) tidak terbaca di Safari.' }));
+    const recPane = el('div', { class: 'pane' }, recBtn, timerEl, el('p', { class: 'hint', text: 'Kalau merekam dari ponsel, jangan kunci layar atau pindah aplikasi. Untuk wawancara penting, lebih aman pakai perekam bawaan ponsel lalu unggah filenya.' }));
+    const upPane = el('div', { class: 'pane', hidden: true }, el('label', { for: 'voice-file', text: 'Pilih file audio' }), fileInp, el('p', { class: 'hint', text: 'Paling aman pakai m4a, mp3, atau wav. File .opus/.ogg (seperti voice note WhatsApp) tidak bisa dibuka di Safari.' }));
     const bRec = el('button', { class: 'seg-btn on', type: 'button', text: 'Rekam langsung', 'aria-pressed': 'true' });
     const bUp = el('button', { class: 'seg-btn', type: 'button', text: 'Unggah file', 'aria-pressed': 'false' });
     function setMode(m) {
@@ -877,8 +877,8 @@
       objectUrl = URL.createObjectURL(b);
       audioEl.src = objectUrl;
       audioEl.hidden = false;
-      info.textContent = label + ' (' + (b.size / 1048576).toFixed(1) + ' MB). Dengarkan dulu bila perlu, lalu klik Transkripsikan.';
-      if (b.size > 300 * 1048576) toast('File sangat besar. Pemrosesan di browser bisa lambat atau gagal.');
+      info.textContent = label + ' (' + (b.size / 1048576).toFixed(1) + ' MB). Dengarkan dulu kalau perlu, lalu klik Transkripsikan.';
+      if (b.size > 300 * 1048576) toast('Filenya besar sekali, jadi prosesnya bisa lambat atau gagal.');
     }
 
     async function releaseWake() {
@@ -896,13 +896,13 @@
         return;
       }
       if (!navigator.mediaDevices || !window.MediaRecorder) {
-        toast('Browser ini tidak mendukung perekaman. Gunakan Unggah file.');
+        toast('Browser ini tidak bisa merekam. Pakai Unggah file saja.');
         return;
       }
       try {
         stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       } catch (_) {
-        toast('Izin mikrofon ditolak atau mikrofon tidak tersedia.');
+        toast('Mikrofon tidak bisa dipakai. Cek izin mikrofon di browser.');
         return;
       }
       const mime = MRAAudio.pickRecorderMime();
@@ -962,10 +962,10 @@
 
     goBtn.addEventListener('click', async () => {
       if (working) return;
-      if (!blob) return toast('Rekam atau pilih file audio dulu.');
-      if (state.info && !state.info.voice) return toast('OPENAI_API_KEY belum diatur di Netlify. Fitur suara memerlukan API OpenAI.');
+      if (!blob) return toast('Rekam atau pilih file audionya dulu.');
+      if (state.info && !state.info.voice) return toast('Fitur suara belum aktif. Minta admin mengaturnya dulu.');
       const ta = ctx.fields.text.ta;
-      if (ta.value.trim() && !confirm('Transkrip yang ada akan diganti. Lanjutkan?')) return;
+      if (ta.value.trim() && !confirm('Transkrip yang sekarang bakal diganti. Lanjut?')) return;
       ta.value = '';
       ta.dispatchEvent(new Event('input'));
       cancelled = false;
@@ -989,7 +989,7 @@
             ta.scrollTop = ta.scrollHeight;
           },
         });
-        status.textContent = 'Selesai (' + MRAAudio.formatTime(res.duration) + '). Periksa dan koreksi transkrip sebelum diolah.';
+        status.textContent = 'Beres (' + MRAAudio.formatTime(res.duration) + '). Cek dan rapikan transkripnya dulu sebelum diolah.';
         status.className = 'status ok';
       } catch (e) {
         status.textContent = e.message;
@@ -1010,7 +1010,7 @@
       upPane,
       audioEl,
       info,
-      el('div', { class: 'field' }, el('label', { for: 'voice-gloss', text: 'Nama dan istilah (opsional)' }), el('p', { class: 'hint', text: 'Membantu transkripsi mengeja nama, jabatan, dan singkatan dengan benar.' }), gloss),
+      el('div', { class: 'field' }, el('label', { for: 'voice-gloss', text: 'Nama dan istilah (opsional)' }), el('p', { class: 'hint', text: 'Supaya nama, jabatan, dan singkatan ditulis dengan ejaan yang benar.' }), gloss),
       el('div', { class: 'actions' }, goBtn, cancelBtn),
       prog,
       status
@@ -1019,7 +1019,7 @@
   }
 
   function buildSpeakerTools(ctx) {
-    const labelBtn = el('button', { class: 'btn small', type: 'button', text: 'Tandai pembicara (perkiraan AI)' });
+    const labelBtn = el('button', { class: 'btn small', type: 'button', text: 'Tandai pembicara (perkiraan)' });
     const undoBtn = el('button', { class: 'btn small', type: 'button', text: 'Urungkan', hidden: true });
     const copyBtn = el('button', { class: 'btn small', type: 'button', text: 'Salin transkrip' });
     const status = el('p', { class: 'status' });
@@ -1035,8 +1035,8 @@
     labelBtn.addEventListener('click', async () => {
       const ta = ctx.fields.text.ta;
       const src = ta.value.trim();
-      if (!src) return toast('Transkrip masih kosong.');
-      if (src.length > 24000) return toast('Transkrip terlalu panjang untuk penandaan otomatis. Beri label manual (misalnya “A:” dan “B:”).');
+      if (!src) return toast('Transkripnya masih kosong.');
+      if (src.length > 24000) return toast('Transkripnya terlalu panjang untuk ditandai otomatis. Beri label sendiri, misalnya “A:” dan “B:”.');
       labelBtn.disabled = true;
       const paras = src.split(/\n\s*\n/);
       const groups = [];
@@ -1072,8 +1072,8 @@
         ta.dispatchEvent(new Event('input'));
         undoBtn.hidden = false;
         status.textContent = rejected
-          ? 'Selesai, tetapi ' + rejected + ' bagian dibiarkan tanpa label karena AI mengubah isi transkrip. Label hanya perkiraan; konfirmasi ke rekaman.'
-          : 'Label hanya perkiraan dari isi teks. Konfirmasi ke rekaman dan perbaiki bila perlu.';
+          ? 'Sudah, tapi ' + rejected + ' bagian dibiarkan tanpa label supaya isi transkrip tidak berubah. Labelnya cuma perkiraan, jadi cocokkan lagi dengan rekaman.'
+          : 'Labelnya cuma perkiraan dari isi teks. Cocokkan lagi dengan rekaman dan perbaiki kalau perlu.';
         status.className = rejected ? 'status err' : 'status ok';
       } catch (e) {
         status.textContent = e.message;
@@ -1110,7 +1110,7 @@
     const samplesBox = el('div', { class: 'samples' });
     const addBtn = el('button', { class: 'btn small', type: 'button', text: 'Tambah contoh' });
     const analyzeBtn = el('button', { class: 'btn', type: 'button', text: 'Analisis gaya' });
-    const summaryTa = el('textarea', { id: 'style-summary', rows: 13, spellcheck: true, placeholder: 'Klik Analisis gaya, lalu edit hasilnya sesuai kebutuhan. Ringkasan inilah yang dikirim ke AI bersama contoh tulisan.' });
+    const summaryTa = el('textarea', { id: 'style-summary', rows: 13, spellcheck: true, placeholder: 'Klik Analisis gaya, lalu sesuaikan hasilnya. Ringkasan ini dipakai sebagai acuan gaya bersama contoh tulisan.' });
     const status = el('p', { class: 'status', role: 'status' });
     const importInp = el('input', { type: 'file', accept: '.json,application/json', hidden: true });
 
@@ -1134,7 +1134,7 @@
           )
         )
       );
-      if (!list.length) listEl.append(el('li', { class: 'muted', text: 'Belum ada profil tersimpan.' }));
+      if (!list.length) listEl.append(el('li', { class: 'muted', text: 'Belum ada profil.' }));
     }
 
     function renderSamples() {
@@ -1175,12 +1175,12 @@
 
     async function analyze() {
       const c = collect();
-      if (!c.samples.length) return toast('Tempel minimal satu contoh tulisan.');
-      if (c.summary && !confirm('Ringkasan gaya yang ada akan diganti. Lanjutkan?')) return;
+      if (!c.samples.length) return toast('Tempel setidaknya satu contoh tulisan.');
+      if (c.summary && !confirm('Ringkasan gaya yang sekarang bakal diganti. Lanjut?')) return;
       const total = c.samples.join(' ').length;
-      if (total < 800) toast('Contoh masih pendek. Dua sampai tiga berita memberi hasil yang lebih akurat.');
+      if (total < 800) toast('Contohnya masih pendek. Dua atau tiga berita biasanya hasilnya lebih pas.');
       analyzeBtn.disabled = true;
-      status.textContent = 'Menganalisis gaya…';
+      status.textContent = 'Sedang membaca gaya tulisan…';
       status.className = 'status busy';
       try {
         const st = Verify.styleStats(c.samples.join('\n\n'));
@@ -1190,7 +1190,7 @@
           ? 'Statistik terukur dari contoh: rata-rata ' + st.avg + ' kata per kalimat (median ' + st.median + '); ' + st.shortShare + '% kalimat pendek (8 kata atau kurang); ' + st.longShare + '% kalimat panjang (25 kata atau lebih); rata-rata ' + st.perPara + ' kalimat per paragraf; ' + st.quoteShare + '% kalimat memuat kutipan langsung.'
           : '';
         summaryTa.value = (statLine ? statLine + '\n\n' : '') + r.text;
-        status.textContent = 'Analisis selesai. Periksa dan edit ringkasan, lalu simpan profil.';
+        status.textContent = 'Sudah jadi. Baca dan sesuaikan ringkasannya, lalu simpan profil.';
         status.className = 'status ok';
       } catch (e) {
         status.textContent = e.message;
@@ -1202,8 +1202,8 @@
 
     function save() {
       const c = collect();
-      if (!c.name) return toast('Beri nama profil dulu.');
-      if (!c.samples.length && !c.summary) return toast('Isi contoh tulisan atau ringkasan gaya.');
+      if (!c.name) return toast('Kasih nama profilnya dulu.');
+      if (!c.samples.length && !c.summary) return toast('Isi contoh tulisan atau ringkasan gayanya dulu.');
       const list = Profiles.all();
       let p = list.find((x) => x.id === cur.id);
       if (!p) {
@@ -1216,7 +1216,7 @@
       Profiles.setActive(p.id);
       refreshStyleSelects();
       renderList();
-      toast('Profil disimpan di browser ini dan dipilih sebagai profil aktif.');
+      toast('Profil tersimpan dan langsung dipakai.');
     }
 
     function remove() {
@@ -1235,7 +1235,7 @@
 
     function exportAll() {
       const list = Profiles.all();
-      if (!list.length) return toast('Belum ada profil untuk diekspor.');
+      if (!list.length) return toast('Belum ada profil yang bisa diekspor.');
       download('profil-gaya-meja-redaksi.json', JSON.stringify({ app: 'meja-redaksi-ai', version: 1, profiles: list }, null, 2), 'application/json');
     }
 
@@ -1261,14 +1261,14 @@
           });
           added++;
         });
-        if (!added) return toast('File tidak berisi profil yang valid.');
+        if (!added) return toast('Tidak ada profil yang bisa dibaca dari file ini.');
         if (Profiles.save(list)) {
           refreshStyleSelects();
           renderList();
           toast(added + ' profil diimpor.');
         }
       } catch (_) {
-        toast('File tidak bisa dibaca. Pastikan itu file ekspor dari aplikasi ini.');
+        toast('File tidak bisa dibuka. Pastikan itu file hasil ekspor dari aplikasi ini.');
       }
     });
 
@@ -1284,17 +1284,17 @@
       'div',
       { class: 'panel-in' },
       el('h1', { text: 'Profil gaya' }),
-      el('p', { class: 'lead', text: 'Tempel contoh tulisan yang dianggap paling mewakili gaya redaksi. AI meniru gaya (ritme, struktur, atribusi, pilihan kata), bukan isinya.' }),
+      el('p', { class: 'lead', text: 'Tempel beberapa tulisan yang paling mewakili gaya redaksimu. Yang ditiru cuma gayanya, seperti ritme, struktur, cara atribusi, dan pilihan kata. Isinya tidak ikut dipakai.' }),
       el('div', { class: 'field' }, el('label', { for: 'style-name', text: 'Nama profil' }), nameInp),
       samplesBox,
       addBtn,
-      el('p', { class: 'fine', text: 'Contoh dan profil disimpan di browser ini saja, bukan di server. Untuk berbagi ke tim, pakai Ekspor lalu Impor.' })
+      el('p', { class: 'fine', text: 'Profil cuma tersimpan di browser ini. Kalau mau dibagikan ke tim, pakai Ekspor lalu Impor.' })
     );
     const right = el(
       'div',
       { class: 'panel-out' },
       el('div', { class: 'sheet' },
-        el('div', { class: 'sheet-head' }, el('div', {}, el('h2', { text: 'Ringkasan gaya' }), el('p', { class: 'stamp', text: 'Bisa diedit. Inilah yang dipakai AI bersama contoh tulisan.' }))),
+        el('div', { class: 'sheet-head' }, el('div', {}, el('h2', { text: 'Ringkasan gaya' }), el('p', { class: 'stamp', text: 'Boleh diedit. Ringkasan ini jadi acuan gaya bersama contoh tulisan.' }))),
         el('div', { class: 'actions' }, analyzeBtn, status),
         summaryTa,
         el('div', { class: 'btn-row' },
@@ -1369,7 +1369,7 @@
     };
 
     const info = state.info || {};
-    $('#engine').textContent = 'Mesin: ' + (info.provider === 'anthropic' ? 'Claude' : 'OpenAI') + (info.model ? ' (' + info.model + ')' : '') + (info.llmReady ? '' : ' | API key belum diatur') + (info.voice ? '' : ' | suara belum aktif');
+    $('#engine').textContent = 'Model: ' + (info.provider === 'anthropic' ? 'Claude' : 'OpenAI') + (info.model ? ' (' + info.model + ')' : '') + (info.llmReady ? '' : ' · belum siap dipakai') + (info.voice ? '' : ' · fitur suara belum aktif');
 
     showTab((location.hash || '').replace('#', '') || TABS[0].id);
   }
@@ -1396,6 +1396,8 @@
   }
 
   function init() {
+    const yr = $('#yr');
+    if (yr) yr.textContent = new Date().getFullYear();
     $('#login-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const btn = $('#login-btn');

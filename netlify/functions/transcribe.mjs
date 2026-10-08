@@ -1,9 +1,10 @@
-'use strict';
+import common from '../lib/common.js';
+import llm from '../lib/llm.js';
 
-const { respond, authorize } = require('../lib/common');
+const { respond, authorize } = common;
+const { openaiBase } = llm;
 
 const MAX_BYTES = 4.5 * 1024 * 1024; // batas request Netlify 6 MB, sisakan ruang
-const ENDPOINT = 'https://api.openai.com/v1/audio/transcriptions';
 
 async function requestTranscript(model, buf, prompt, key) {
   const form = new FormData();
@@ -17,7 +18,7 @@ async function requestTranscript(model, buf, prompt, key) {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 24000);
   try {
-    const res = await fetch(ENDPOINT, {
+    const res = await fetch(openaiBase() + '/audio/transcriptions', {
       method: 'POST',
       headers: { Authorization: `Bearer ${key}` },
       body: form,
@@ -37,9 +38,9 @@ async function requestTranscript(model, buf, prompt, key) {
 }
 
 // Menerima satu potongan audio WAV (biner) dan mengembalikan teksnya.
-exports.handler = async (event) => {
-  if (event.httpMethod !== 'POST') return respond(405, { error: 'Metode tidak diizinkan.' });
-  const denied = await authorize(event);
+export default async (req) => {
+  if (req.method !== 'POST') return respond(405, { error: 'Metode tidak diizinkan.' });
+  const denied = await authorize(req);
   if (denied) return denied;
 
   const key = process.env.OPENAI_API_KEY;
@@ -49,15 +50,15 @@ exports.handler = async (event) => {
     });
   }
 
-  const buf = Buffer.from(event.body || '', event.isBase64Encoded ? 'base64' : 'binary');
+  const buf = Buffer.from(await req.arrayBuffer());
   if (!buf.length) return respond(400, { error: 'Potongan audio kosong.' });
   if (buf.length > MAX_BYTES) {
-    return respond(413, { error: 'Potongan audio terlalu besar. Muat ulang halaman dan coba lagi.' });
+    return respond(413, { error: 'Potongan audionya terlalu besar. Muat ulang halaman, lalu coba lagi.' });
   }
 
   let prompt = '';
   try {
-    prompt = decodeURIComponent((event.headers || {})['x-prompt'] || '').slice(0, 600);
+    prompt = decodeURIComponent(req.headers.get('x-prompt') || '').slice(0, 600);
   } catch (_) {
     prompt = '';
   }
@@ -80,8 +81,8 @@ exports.handler = async (event) => {
     return respond(200, { text: String((r.data && r.data.text) || '').trim() });
   } catch (e) {
     if (e && e.name === 'AbortError') {
-      return respond(504, { error: 'Waktu habis saat transkripsi potongan audio.' });
+      return respond(504, { error: 'Transkripsinya kelamaan. Coba lagi.' });
     }
-    return respond(502, { error: 'Tidak bisa menghubungi layanan transkripsi.' });
+    return respond(502, { error: 'Layanan transkripsi sedang tidak bisa dihubungi.' });
   }
 };

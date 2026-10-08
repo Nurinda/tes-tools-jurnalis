@@ -25,7 +25,7 @@
 
   async function decode(blob) {
     const AC = root.AudioContext || root.webkitAudioContext;
-    if (!AC) throw new Error('Browser ini tidak mendukung pemrosesan audio. Coba Chrome atau Safari terbaru.');
+    if (!AC) throw new Error('Browser ini tidak bisa memproses audio. Coba pakai Chrome atau Safari versi terbaru.');
     let ctx;
     try {
       ctx = new AC({ sampleRate: OUT_SR }); // memaksa hasil decode 16 kHz bila didukung (hemat memori)
@@ -41,7 +41,7 @@
       return buf;
     } catch (e) {
       throw new Error(
-        'Format audio ini tidak bisa dibaca browser. Coba ekspor ke m4a, mp3, atau wav, atau pakai Chrome (Safari tidak membaca .opus/.ogg).'
+        'Format audionya tidak bisa dibuka. Coba ubah ke m4a, mp3, atau wav, atau pakai Chrome (Safari tidak bisa membuka .opus/.ogg).'
       );
     } finally {
       try {
@@ -147,7 +147,7 @@
    * }
    */
   async function transcribe(blob, opts) {
-    opts.onStatus('Membaca dan menyiapkan audio…');
+    opts.onStatus('Menyiapkan audio…');
     const buf = await decode(blob);
     const sr = buf.sampleRate;
     const plan = planChunks(buf);
