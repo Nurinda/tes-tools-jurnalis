@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="color-scheme" content="light">
+  <title>Meja Redaksi AI</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='5' fill='%2312343B'/%3E%3Crect x='6' y='19' width='20' height='6' fill='%23FFE14D'/%3E%3Cpath d='M8 17V7h3l5 6 5-6h3v10h-3v-5l-5 6-5-6v5z' fill='%23fff'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <noscript><p style="padding:24px">Aplikasi ini memerlukan JavaScript.</p></noscript>
+
+  <!-- Masuk -->
+  <div id="login" class="login" hidden>
+    <form id="login-form" class="login-card" autocomplete="off">
+      <h1>Meja Redaksi AI</h1>
+      <p>Alat bantu draf untuk jurnalis dan editor. Masukkan kata sandi yang diberikan admin redaksi.</p>
+      <label for="login-pw">Kata sandi</label>
+      <input id="login-pw" type="password" autocomplete="current-password" required>
+      <p id="login-err" class="error" role="alert" hidden></p>
+      <button class="btn primary" type="submit" id="login-btn">Masuk</button>
+    </form>
+  </div>
+
+  <!-- Aplikasi -->
+  <div id="app" class="app" hidden>
+    <aside class="rail">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-name">Meja Redaksi AI</span>
+      </div>
+      <nav id="nav" class="nav" aria-label="Fitur"></nav>
+      <div class="rail-foot">
+        <label class="switch" for="audit-toggle" title="Satu panggilan AI tambahan untuk membandingkan draf dengan sumber">
+          <input id="audit-toggle" type="checkbox">
+          <span>Auditor AI</span>
+        </label>
+        <p id="engine" class="engine"></p>
+        <button id="logout" class="link-btn" type="button">Keluar</button>
+      </div>
+    </aside>
+    <main class="desk" id="desk"></main>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="js/verify.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

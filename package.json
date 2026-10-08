@@ -1,0 +1,11 @@
+{
+  "name": "meja-redaksi-ai",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Alat bantu AI untuk redaksi: cek naskah, judul dan SEO, sebar konten, transkrip dan suara ke bahan berita, dengan verifikasi otomatis.",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "dev": "netlify dev",
+    "test": "node --test test/verify.test.js"
+  }
+}
