@@ -1320,6 +1320,116 @@
   }
 
   /* ===================================================================
+   * Gambar ilustrasi
+   * =================================================================== */
+  const IMG_STYLES = [
+    { id: 'photo', label: 'Foto stok natural' },
+    { id: 'place', label: 'Foto suasana/tempat' },
+    { id: 'still', label: 'Foto benda (still life)' },
+    { id: 'flat', label: 'Ilustrasi vektor datar' },
+    { id: 'isometric', label: 'Ilustrasi isometrik' },
+  ];
+  const IMG_RATIOS = [
+    { id: '16:9', label: '16:9 (gambar utama berita)' },
+    { id: '1:1', label: '1:1 (feed Instagram)' },
+    { id: '4:5', label: '4:5 (feed potret)' },
+    { id: '9:16', label: '9:16 (story/reels)' },
+    { id: '3:2', label: '3:2 (foto klasik)' },
+  ];
+
+  function buildImageView() {
+    const section = el('section', { class: 'tool image-view', id: 'tab-image', hidden: true, 'aria-label': 'Gambar ilustrasi' });
+    let busy = false;
+    let count = 0;
+
+    const promptTa = el('textarea', { id: 'image-prompt', rows: 7, spellcheck: true, maxLength: 2000, placeholder: 'Contoh: Deretan motor terjebak macet di jalan protokol Jakarta saat hujan sore hari, lampu rem menyala, aspal basah memantulkan cahaya.' });
+    const styleSel = el('select', { id: 'image-style' }, ...IMG_STYLES.map((o) => el('option', { value: o.id, text: o.label })));
+    const ratioSel = el('select', { id: 'image-ratio' }, ...IMG_RATIOS.map((o) => el('option', { value: o.id, text: o.label })));
+    const noFaces = el('input', { type: 'checkbox', id: 'image-nofaces', checked: true });
+    const status = el('p', { class: 'status', role: 'status' });
+    const runBtn = el('button', { class: 'btn primary', type: 'button', text: 'Buat gambar' });
+    const gallery = el('div', { class: 'result' });
+    const empty = el('div', { class: 'empty' }, el('p', { class: 'empty-title', text: 'Gambarnya nanti muncul di sini' }), el('p', { text: 'Tiap klik membuat satu gambar baru. Klik lagi untuk dapat variasi lain dari deskripsi yang sama.' }));
+    gallery.append(empty);
+
+    function setStatus(msg, kind) {
+      status.textContent = msg || '';
+      status.className = 'status' + (kind ? ' ' + kind : '');
+    }
+
+    function addCard(r, desc) {
+      count++;
+      const src = 'data:' + (r.mime || 'image/png') + ';base64,' + r.image;
+      const ext = /jpe?g/.test(r.mime || '') ? 'jpg' : /webp/.test(r.mime || '') ? 'webp' : 'png';
+      const name = 'ilustrasi-' + new Date().toISOString().slice(0, 10) + '-' + count + '.' + ext;
+      const styleLabel = (IMG_STYLES.find((o) => o.id === r.style) || {}).label || '';
+      const card = el(
+        'div',
+        { class: 'sheet img-card' },
+        el('img', { class: 'gen-img', src, alt: desc.slice(0, 200) }),
+        el('div', { class: 'sheet-head' },
+          el('div', {}, el('p', { class: 'row-meta', text: styleLabel + ' · ' + r.ratio }), el('p', { class: 'stamp', text: 'Gambar buatan AI. Beri keterangan "ilustrasi" saat dipakai, jangan disajikan sebagai foto peristiwa.' }))),
+        el('div', { class: 'btn-row' },
+          el('a', { class: 'btn small', href: src, download: name, text: 'Unduh' }),
+          el('button', { class: 'btn small', type: 'button', text: 'Hapus', onclick: () => card.remove() })
+        )
+      );
+      empty.remove();
+      gallery.prepend(card);
+    }
+
+    async function run() {
+      if (busy) return;
+      const desc = promptTa.value.trim();
+      if (!desc) return toast('Tulis dulu deskripsi gambarnya.');
+      busy = true;
+      runBtn.disabled = true;
+      setStatus('Sedang membuat gambar… biasanya 10 sampai 30 detik.', 'busy');
+      try {
+        const body = { prompt: desc, style: styleSel.value, ratio: ratioSel.value, noFaces: noFaces.checked };
+        let r;
+        for (let attempt = 0; attempt < 2; attempt++) {
+          try {
+            r = await Api.json('image', body);
+            break;
+          } catch (e) {
+            if (attempt === 1 || !(e.status === 502 || e.status === 503 || e.status === 429)) throw e;
+            await sleep(1500);
+          }
+        }
+        addCard(r, desc);
+        setStatus('Sudah jadi. Klik Buat gambar lagi untuk variasi lain.', 'ok');
+      } catch (e) {
+        setStatus(e.message, 'err');
+      } finally {
+        busy = false;
+        runBtn.disabled = false;
+      }
+    }
+    runBtn.addEventListener('click', run);
+
+    const left = el(
+      'div',
+      { class: 'panel-in' },
+      el('h1', { text: 'Gambar ilustrasi' }),
+      el('p', { class: 'lead', text: 'Buat gambar pendukung berita yang terlihat natural seperti foto atau ilustrasi stok. Gambar tanpa wajah orang lebih aman dan tidak terlihat buatan AI.' }),
+      el('div', { class: 'field' },
+        el('label', { for: 'image-prompt', text: 'Deskripsi gambar' }),
+        el('p', { class: 'hint', text: 'Ceritakan suasana, objek, tempat, waktu, dan cahaya. Lebih baik fokus ke benda, tempat, atau suasana daripada tokoh.' }),
+        promptTa
+      ),
+      el('div', { class: 'field' }, el('label', { for: 'image-style', text: 'Gaya' }), styleSel),
+      el('div', { class: 'field' }, el('label', { for: 'image-ratio', text: 'Ukuran' }), ratioSel),
+      el('label', { class: 'check single', for: 'image-nofaces' }, noFaces, el('span', { text: 'Hindari wajah orang (disarankan)' })),
+      el('div', { class: 'actions' }, runBtn, status),
+      el('p', { class: 'fine', text: 'Jangan meminta gambar tokoh nyata atau merekayasa peristiwa. Gambar AI hanya untuk ilustrasi, bukan pengganti foto jurnalistik. Gambar tidak disimpan di server, jadi unduh yang mau dipakai.' })
+    );
+    section.append(left, el('div', { class: 'panel-out' }, gallery));
+    views.image = { section, ctx: null };
+    return section;
+  }
+
+  /* ===================================================================
    * Navigasi, masuk, dan inisialisasi
    * =================================================================== */
   let activeTab = null;
@@ -1357,6 +1467,8 @@
       desk.append(buildTool(tab));
       nav.append(el('button', { type: 'button', 'data-tab': tab.id, text: tab.label, onclick: () => showTab(tab.id) }));
     });
+    desk.append(buildImageView());
+    nav.append(el('button', { type: 'button', 'data-tab': 'image', text: 'Gambar ilustrasi', onclick: () => showTab('image') }));
     nav.append(el('hr', { class: 'nav-sep' }));
     desk.append(buildStyleView());
     nav.append(el('button', { type: 'button', 'data-tab': 'style', text: 'Profil gaya', onclick: () => showTab('style') }));
