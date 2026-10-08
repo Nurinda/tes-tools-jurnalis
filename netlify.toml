@@ -3,6 +3,8 @@
 
 [build.environment]
   NODE_VERSION = "20"
+  # LLM_PROVIDER hanya berisi nama penyedia (mis. "anthropic"/"openai"), bukan rahasia.
+  SECRETS_SCAN_OMIT_KEYS = "LLM_PROVIDER"
 
 [functions]
   directory = "netlify/functions"
