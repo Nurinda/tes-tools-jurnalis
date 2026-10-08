@@ -12,6 +12,7 @@ Alat bantu AI untuk jurnalis dan editor. Semua hasil adalah **draf bantuan AI** 
 | Transkrip ke berita | Ringkasan, kutipan terbaik + konteks, angle, kerangka, draf (opsional) |
 | Rilis ke berita | Draf netral, klaim sepihak yang perlu dikonfirmasi, pertanyaan untuk pembanding |
 | Suara ke berita | Rekam/unggah audio, transkrip yang bisa diedit, penanda pembicara (perkiraan AI), lalu bahan berita |
+| Gambar ilustrasi | Buat gambar pendukung berita bergaya foto/ilustrasi stok yang natural, default tanpa wajah orang, bisa diunduh |
 | Profil gaya | Tempel 1 sampai 5 contoh tulisan, analisis gaya, simpan, ekspor/impor |
 
 ### Anti-halusinasi (berlapis)
@@ -43,7 +44,7 @@ meja-redaksi-ai/
 │   ├── js/audio.js         # pemotong audio di browser
 │   └── fonts/
 ├── netlify/
-│   ├── functions/          # auth.js, generate.js, transcribe.js
+│   ├── functions/          # auth, generate, transcribe, image (.mjs)
 │   └── lib/                # common.js, llm.js, prompts.js
 ├── test/verify.test.js     # uji unit pemeriksa
 ├── netlify.toml
@@ -101,6 +102,7 @@ Ganti `NAMA-AKUN` dengan username GitHub-mu (repo kosongnya dibuat dulu seperti 
    | `ANTHROPIC_MODEL` | nama model Claude | tidak (bawaan `claude-sonnet-5-5`) |
    | `OPENAI_MODEL` | nama model OpenAI | tidak (bawaan `gpt-4.1`) |
    | `TRANSCRIBE_MODEL` | model transkripsi | tidak (bawaan `gpt-4o-transcribe`, cadangan `whisper-1`) |
+   | `IMAGE_MODEL` | model gambar Gemini untuk menu Gambar ilustrasi | tidak (bawaan `gemini-3.1-flash-image`, cadangan `gemini-2.5-flash-image`; memakai AI Gateway Netlify tanpa API key tambahan) |
 
 5. **Wajib deploy ulang** agar variabel terbaca: **Deploys > Trigger deploy > Deploy site**.
 6. Buka alamat `https://nama-situs.netlify.app`, masuk dengan `APP_PASSWORD`. Di kiri bawah harus tertulis mesin yang aktif tanpa peringatan "API key belum diatur".
