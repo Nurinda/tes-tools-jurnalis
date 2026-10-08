@@ -37,7 +37,7 @@ function getProvider() {
 
 function getModel(provider) {
   if (provider === 'anthropic') return process.env.ANTHROPIC_MODEL || 'claude-sonnet-5-5';
-  return process.env.OPENAI_MODEL || 'gpt-4.1';
+  return process.env.OPENAI_MODEL || 'gpt-5';
 }
 
 /**

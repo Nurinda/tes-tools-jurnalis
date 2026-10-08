@@ -100,7 +100,7 @@ Ganti `NAMA-AKUN` dengan username GitHub-mu (repo kosongnya dibuat dulu seperti 
    | `ANTHROPIC_API_KEY` | key dari console.anthropic.com | jika memakai Claude |
    | `OPENAI_API_KEY` | key dari platform.openai.com | jika memakai OpenAI, **dan wajib untuk menu Suara** |
    | `ANTHROPIC_MODEL` | nama model Claude | tidak (bawaan `claude-sonnet-5-5`) |
-   | `OPENAI_MODEL` | nama model OpenAI | tidak (bawaan `gpt-4.1`) |
+   | `OPENAI_MODEL` | nama model OpenAI | tidak (bawaan `gpt-5`) |
    | `TRANSCRIBE_MODEL` | model transkripsi | tidak (bawaan `gpt-4o-transcribe`, cadangan `whisper-1`) |
    | `IMAGE_MODEL` | model gambar Gemini untuk menu Gambar ilustrasi | tidak (bawaan `gemini-3.1-flash-image`, cadangan `gemini-2.5-flash-image`; memakai AI Gateway Netlify tanpa API key tambahan) |
 
