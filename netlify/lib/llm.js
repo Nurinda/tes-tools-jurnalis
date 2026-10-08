@@ -59,6 +59,16 @@ function mentionsTemperature(r) {
   return r.status === 400 && /temperature/i.test(JSON.stringify(r.data || {}));
 }
 
+function mentionsReasoning(r) {
+  return r.status === 400 && /reasoning/i.test(JSON.stringify(r.data || {}));
+}
+
+// Model keluarga GPT-5 / o-series adalah model penalaran: tidak menerima
+// temperature selain bawaan dan memakai sebagian token untuk berpikir.
+function isReasoningModel(model) {
+  return /^(gpt-5|o\d)/i.test(model || '');
+}
+
 async function callAnthropic({ system, user, maxTokens, temperature }, timeoutMs) {
   const key = process.env.ANTHROPIC_API_KEY;
   if (!key) {
@@ -95,8 +105,10 @@ async function callOpenAI({ system, user, maxTokens, temperature }, timeoutMs) {
     e.status = 500;
     throw e;
   }
+  const model = getModel('openai');
+  const reasoning = isReasoningModel(model);
   const body = {
-    model: getModel('openai'),
+    model,
     messages: [
       { role: 'system', content: system },
       { role: 'user', content: user },
@@ -104,9 +116,24 @@ async function callOpenAI({ system, user, maxTokens, temperature }, timeoutMs) {
     max_completion_tokens: maxTokens,
     temperature,
   };
+  if (reasoning) {
+    delete body.temperature;
+    // Penalaran minimal agar cepat dan token tidak habis sebelum teks keluar.
+    body.reasoning_effort = process.env.OPENAI_REASONING_EFFORT || 'minimal';
+    body.max_completion_tokens = maxTokens * 2;
+  }
   const headers = { Authorization: `Bearer ${key}` };
   const url = openaiBase() + '/chat/completions';
   let r = await postJson(url, headers, body, timeoutMs);
+  if (!r.ok && body.reasoning_effort && mentionsReasoning(r)) {
+    // Beberapa versi GPT-5 tidak mengenal 'minimal'; coba 'low', lalu tanpa parameter.
+    body.reasoning_effort = 'low';
+    r = await postJson(url, headers, body, timeoutMs);
+    if (!r.ok && mentionsReasoning(r)) {
+      delete body.reasoning_effort;
+      r = await postJson(url, headers, body, timeoutMs);
+    }
+  }
   if (!r.ok && mentionsTemperature(r)) {
     delete body.temperature;
     r = await postJson(url, headers, body, timeoutMs);
